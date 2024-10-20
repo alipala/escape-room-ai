@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 from .routes import game, user
 from .utils.database import engine, Base
 from .utils.logger import setup_logger
@@ -10,6 +11,15 @@ load_dotenv()
 
 # Create FastAPI app
 app = FastAPI(title="AI-Enhanced Escape Room Game")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Allow your React app's origin
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Set up logging
 logger = setup_logger()

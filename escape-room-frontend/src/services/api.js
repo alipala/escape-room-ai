@@ -1,10 +1,15 @@
 import axios from 'axios';
 import log from '../utils/logger';
 
-const API_URL = 'http://localhost:8000'; // Replace with your backend URL
+const API_URL = 'http://localhost:8000'; // Backend URL
 
 const api = axios.create({
   baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {

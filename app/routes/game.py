@@ -5,6 +5,7 @@ from app.services.game_service import GameService
 from app.services.rag_service import RAGService
 from app.services.multiagent_service import MultiagentService
 from pydantic import BaseModel
+from app.schemas.game import GameCreate
 
 router = APIRouter()
 
@@ -18,8 +19,12 @@ class AnswerSubmit(BaseModel):
     puzzle_id: int
     answer: str
 
+@router.options("/games")
+async def games_options():
+    return {"message": "OK"}
+
 @router.post("/games")
-def create_game(game: GameCreate, db: Session = Depends(get_db)):
+async def create_game(game: GameCreate, db: Session = Depends(get_db)):
     game_service = GameService(db)
     rag_service = RAGService()
     multiagent_service = MultiagentService()

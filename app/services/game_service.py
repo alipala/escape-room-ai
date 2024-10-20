@@ -2,6 +2,10 @@ import random
 from app.models.models import Game, Puzzle
 from app.utils.logger import setup_logger
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException
+from fastapi import HTTPException
+from app.schemas.game import GameCreate 
 
 logger = setup_logger()
 
@@ -11,15 +15,18 @@ class GameService:
 
     def create_game(self, user_id: int, theme: str, difficulty: int):
         try:
-            game = Game(user_id=user_id, theme=theme, difficulty=difficulty)
-            self.db.add(game)
+            new_game = Game(user_id=user_id, theme=theme, difficulty=difficulty)
+            self.db.add(new_game)
             self.db.commit()
-            self.db.refresh(game)
-            return game
-        except Exception as e:
-            logger.error(f"Error creating game: {str(e)}")
+            self.db.refresh(new_game)
+            return new_game
+        except IntegrityError as e:
             self.db.rollback()
-            raise
+            if 'foreign key constraint' in str(e).lower() and 'user_id' in str(e):
+                raise HTTPException(status_code=400, detail="Invalid user ID. Please ensure the user exists.")
+            else:
+                raise HTTPException(status_code=500, detail="An error occurred while creating the game.")
+
 
     def generate_puzzle(self, game_id: int):
         try:
