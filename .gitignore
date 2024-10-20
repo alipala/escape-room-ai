@@ -1,0 +1,61 @@
+# Environment variables
+.env
+
+# Python virtual environment
+venv/
+env/
+*.pyc
+__pycache__/
+
+# IDE-specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+node_modules/
+
+# Python package files
+*.egg-info/
+dist/
+build/
+
+# Database files
+*.sqlite3
+
+# Compiled Python files
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Coverage reports
+htmlcov/
+.coverage
+
+# Pytest cache
+.pytest_cache/
+
+# mypy cache
+.mypy_cache/
+
+# Temporary files
+*.bak
+*.tmp
+
+# Dependency management
+pip-lock.txt
+poetry.lock
+
+# FastAPI specific
+.pytest_cache/
