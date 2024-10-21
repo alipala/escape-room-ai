@@ -23,6 +23,31 @@ class AnswerSubmit(BaseModel):
     puzzle_id: int
     answer: str
 
+class PuzzlePerformance(BaseModel):
+    time_spent: float
+    attempts: int
+    solved: bool
+
+@router.post("/games/{game_id}/puzzles")
+def generate_puzzle(game_id: int, db: Session = Depends(get_db)):
+    game_service = GameService(db)
+    try:
+        puzzle = game_service.generate_dynamic_puzzle(game_id)
+        return puzzle
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/puzzles/{puzzle_id}/performance")
+def update_puzzle_performance(puzzle_id: int, performance: PuzzlePerformance, db: Session = Depends(get_db)):
+    game_service = GameService(db)
+    try:
+        updated_puzzle = game_service.update_puzzle_performance(
+            puzzle_id, performance.time_spent, performance.attempts, performance.solved
+        )
+        return updated_puzzle
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 @router.post("/games")
 def create_game(game: GameCreate, db: Session = Depends(get_db)):
     game_service = GameService(db)
@@ -70,5 +95,26 @@ def check_answer(answer_submit: AnswerSubmit, db: Session = Depends(get_db)):
     try:
         is_correct, feedback = game_service.check_answer(answer_submit.puzzle_id, answer_submit.answer)
         return {"is_correct": is_correct, "feedback": feedback}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/games/{game_id}")
+def get_game_state(game_id: int, db: Session = Depends(get_db)):
+    game_service = GameService(db)
+    try:
+        game = game_service.get_game(game_id)
+        if not game:
+            raise HTTPException(status_code=404, detail="Game not found")
+        
+        puzzles = game_service.get_game_puzzles(game_id)
+        return {
+            "game_id": game.id,
+            "theme": game.theme,
+            "difficulty": game.difficulty,
+            "score": game.score,
+            "start_time": game.start_time,
+            "end_time": game.end_time,
+            "puzzles": puzzles
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
