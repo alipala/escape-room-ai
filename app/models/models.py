@@ -22,6 +22,7 @@ class Game(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     theme = Column(String)
     difficulty = Column(Integer)
+    age_group = Column(String)  # Make sure this line is present
     score = Column(Integer, default=0)
     start_time = Column(DateTime, default=datetime.datetime.utcnow)
     end_time = Column(DateTime)
