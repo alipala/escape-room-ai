@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float, Boolean
 from sqlalchemy.orm import relationship
 from app.utils.database import Base
 import datetime
@@ -38,6 +38,10 @@ class Puzzle(Base):
     question = Column(String)
     answer = Column(String)
     hints = Column(String)
+    difficulty = Column(Float, default=1.0)
+    attempts = Column(Integer, default=0)
+    time_spent = Column(Float, default=0.0)
+    solved = Column(Boolean, default=False)
     game = relationship("Game", back_populates="puzzles")
 
     model_config = ConfigDict(from_attributes=True)
