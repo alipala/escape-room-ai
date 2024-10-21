@@ -56,26 +56,48 @@ def create_game(game: GameCreate, db: Session = Depends(get_db)):
 
     try:
         # Create the game
-        new_game = game_service.create_game(game.user_id, game.theme, game.difficulty)
+        new_game = game_service.create_game(game.user_id, game.theme, game.difficulty, game.age_group)
 
         # Generate game content using the multiagent service
-        game_content = multiagent_service.generate_game_content(game.theme, game.age_group, game.difficulty)
+        try:
+            game_content = multiagent_service.generate_game_content(game.theme, game.age_group, game.difficulty)
+            game_content_str = str(game_content)  # Convert CrewOutput to string
+        except Exception as e:
+            logger.error(f"Error generating game content: {str(e)}")
+            game_content_str = f"Default content for {game.theme}"
 
         # Use RAG to enhance the game content
         try:
-            rag_service.load_data("data/sample_themes.json")  # Load your dataset here
-            enhanced_content = rag_service.query(game_content)
+            rag_service.load_data("data/sample_themes.json")
+            enhanced_content = rag_service.query(game_content_str)
         except Exception as e:
             logger.warning(f"RAG service failed: {str(e)}. Proceeding with original game content.")
-            enhanced_content = [game_content]
+            enhanced_content = [game_content_str]
 
         # Generate puzzles based on the enhanced content
         puzzles = []
         for content in enhanced_content:
-            puzzle = game_service.generate_puzzle(new_game.id)
-            puzzles.append(puzzle)
+            try:
+                puzzle = game_service.generate_dynamic_puzzle(new_game.id)
+                puzzles.append(puzzle)
+            except Exception as e:
+                logger.error(f"Error generating puzzle: {str(e)}")
 
-        return {"game_id": new_game.id, "puzzles": puzzles}
+        return {
+            "game_id": new_game.id,
+            "theme": new_game.theme,
+            "difficulty": new_game.difficulty,
+            "age_group": new_game.age_group,
+            "puzzles": [
+                {
+                    "id": p.id,
+                    "question": p.question,
+                    "hints": p.hints,
+                    "difficulty": p.difficulty,
+                    "answer": p.answer if game.user_id == 1 else "Hidden"  # Only show answer for admin (user_id 1)
+                } for p in puzzles
+            ]
+        }
     except Exception as e:
         logger.error(f"Error creating game: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

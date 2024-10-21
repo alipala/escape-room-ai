@@ -4,6 +4,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_community.document_loaders import JSONLoader
 from langchain.text_splitter import CharacterTextSplitter
 from app.utils.logger import setup_logger
+from langchain_openai import OpenAIEmbeddings
 
 import json
 
@@ -48,3 +49,14 @@ class RAGService:
         except Exception as e:
             logger.error(f"Error loading data: {str(e)}")
             raise
+
+
+    def query(self, query_text: str, k: int = 4):
+        try:
+            if not self.vector_store:
+                raise ValueError("Vector store not initialized. Please load data first.")
+            docs = self.vector_store.similarity_search(query_text, k=k)
+            return [doc.page_content for doc in docs]
+        except Exception as e:
+            logger.error(f"Error querying vector store: {str(e)}")
+            return []  # Return an empty list instead of raising an exception
