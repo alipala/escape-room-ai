@@ -22,27 +22,30 @@ class MultiagentService:
         )
 
     def generate_game_content(self, theme: str, age_group: str, difficulty: int):
-        try:
-            crew = Crew(
-                agents=[self.storyteller, self.puzzle_master, self.difficulty_scaler],
-                tasks=[
-                    Task(
-                        description=f"Create a storyline for an escape room with the theme: {theme}",
-                        agent=self.storyteller
-                    ),
-                    Task(
-                        description=f"Design puzzles fitting the theme and appropriate for age group: {age_group}",
-                        agent=self.puzzle_master
-                    ),
-                    Task(
-                        description=f"Adjust puzzle difficulty to level {difficulty} for age group {age_group}",
-                        agent=self.difficulty_scaler
-                    )
-                ]
-            )
+            try:
+                crew = Crew(
+                    agents=[self.storyteller, self.puzzle_master, self.difficulty_scaler],
+                    tasks=[
+                        Task(
+                            description=f"Create a storyline for an escape room with the theme: {theme}",
+                            agent=self.storyteller,
+                            expected_output="A detailed storyline for the escape room"
+                        ),
+                        Task(
+                            description=f"Design puzzles fitting the theme and appropriate for age group: {age_group}",
+                            agent=self.puzzle_master,
+                            expected_output="A list of puzzle ideas with descriptions"
+                        ),
+                        Task(
+                            description=f"Adjust puzzle difficulty to level {difficulty} for age group {age_group}",
+                            agent=self.difficulty_scaler,
+                            expected_output="Difficulty-adjusted puzzle descriptions"
+                        )
+                    ]
+                )
 
-            result = crew.kickoff()
-            return result
-        except Exception as e:
-            logger.error(f"Error generating game content: {str(e)}")
-            raise
+                result = crew.kickoff()
+                return result
+            except Exception as e:
+                logger.error(f"Error generating game content: {str(e)}")
+                raise

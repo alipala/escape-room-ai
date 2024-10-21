@@ -1,10 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.utils.database import get_db
+from app.utils.logger import setup_logger
 from app.services.game_service import GameService
 from app.services.rag_service import RAGService
 from app.services.multiagent_service import MultiagentService
 from pydantic import BaseModel
+
+# Set up logging
+logger = setup_logger()
+
 
 router = APIRouter()
 
@@ -32,8 +37,12 @@ def create_game(game: GameCreate, db: Session = Depends(get_db)):
         game_content = multiagent_service.generate_game_content(game.theme, game.age_group, game.difficulty)
 
         # Use RAG to enhance the game content
-        rag_service.load_data("data/sample_themes.json")  # Load your dataset here
-        enhanced_content = rag_service.query(game_content)
+        try:
+            rag_service.load_data("data/sample_themes.json")  # Load your dataset here
+            enhanced_content = rag_service.query(game_content)
+        except Exception as e:
+            logger.warning(f"RAG service failed: {str(e)}. Proceeding with original game content.")
+            enhanced_content = [game_content]
 
         # Generate puzzles based on the enhanced content
         puzzles = []
@@ -43,6 +52,7 @@ def create_game(game: GameCreate, db: Session = Depends(get_db)):
 
         return {"game_id": new_game.id, "puzzles": puzzles}
     except Exception as e:
+        logger.error(f"Error creating game: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/games/{game_id}/puzzles")
